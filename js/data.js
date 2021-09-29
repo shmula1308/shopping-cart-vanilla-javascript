@@ -34,21 +34,38 @@ export let DUMMY_ITEMS = [
 ];
 
 export const updateDataHandler = (action) => {
+  if (action.type === "INCREASE") {
+    let existingItem = DUMMY_ITEMS.find((item) => item.id === action.id);
+    let existingItemIndex = DUMMY_ITEMS.findIndex((item) => item.id === action.id);
+
+    let updatedItem = {
+      ...existingItem,
+      amount: ++existingItem.amount,
+    };
+
+    let updatedItems = [...DUMMY_ITEMS];
+    updatedItems[existingItemIndex] = updatedItem;
+    DUMMY_ITEMS = updatedItems;
+  }
+  if (action.type === "DECREASE") {
+    let existingItem = DUMMY_ITEMS.find((item) => item.id === action.id);
+    let existingItemIndex = DUMMY_ITEMS.findIndex((item) => item.id === action.id);
+
+    let updatedItem = {
+      ...existingItem,
+      amount: --existingItem.amount,
+    };
+
+    let updatedItems = [...DUMMY_ITEMS];
+    updatedItems[existingItemIndex] = updatedItem;
+    DUMMY_ITEMS = updatedItems;
+  }
   if (action.type === "REMOVE") {
     let updatedItems = DUMMY_ITEMS.filter((item) => item.id !== action.id);
     DUMMY_ITEMS = updatedItems;
   }
-  // if (action.type === "INCREASE") {
-  //   let existingItem = DUMMY_ITEMS.find((item) => item.id === action.id);
-  //   let existingItemIndex = DUMMY_ITEMS.findIndex((item) => item.id === action.id);
 
-  //   let updatedItem = {
-  //     ...existingItem,
-  //     amount: ++existingItem.amount,
-  //   };
-
-  //   let items = [...DUMMY_ITEMS];
-  //   let updatedItems = items[existingItemIndex];
-  //   DUMMY_ITEMS = updatedItems;
-  // }
+  if (action.type === "CLEAR") {
+    DUMMY_ITEMS = [];
+  }
 };

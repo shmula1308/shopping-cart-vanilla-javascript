@@ -3,13 +3,23 @@ import { DUMMY_ITEMS, updateDataHandler } from "./data.js";
 const app = {
   init: () => {
     document.addEventListener("DOMContentLoaded", app.displayItemsHandler);
+    app.updateCartCount();
+    app.updateTotalHandler();
+
     let itemsContainer = document.querySelector(".list");
     itemsContainer.addEventListener("click", app.itemsActionHandler);
+
+    let clearCartBtn = document.querySelector(".clear-cart-btn");
+    clearCartBtn.addEventListener("click", app.clearCartHandler);
   },
+
   displayItemsHandler: () => {
     let itemsContainer = document.querySelector(".list");
     let df = new DocumentFragment();
 
+    if (DUMMY_ITEMS.length === 0) {
+      itemsContainer.innerHTML = "";
+    }
     DUMMY_ITEMS.forEach((item) => {
       let li = document.createElement("li");
       li.classList.add("item");
@@ -65,8 +75,6 @@ const app = {
       df.append(li);
     });
     itemsContainer.append(df);
-
-    app.updateTotalHandler();
   },
 
   itemsActionHandler: (ev) => {
@@ -83,28 +91,76 @@ const app = {
       let prevAmount = Number(amountContainer.textContent);
       amountContainer.textContent = ++prevAmount;
       updateDataHandler({ type: "INCREASE", id: clickedItemID });
+      app.updateTotalHandler();
+      app.updateCartCount();
     }
     if (actionType === "decreaseAmount") {
       let amountContainer = clickedItem.querySelector(".amount");
       let prevAmount = amountContainer.textContent;
-      Number(prevAmount) === 1 ? app.removeItemHandler(clickedItemID) : Number(prevAmount);
+
+      if (+prevAmount === 1) {
+        app.removeItemHandler(clickedItemID);
+        updateDataHandler({ type: "REMOVE", id: clickedItemID });
+        app.updateCartCount();
+        app.updateTotalHandler();
+        if (DUMMY_ITEMS.length === 0) {
+          app.emptyCartHandler();
+        }
+        return;
+      }
+
       amountContainer.textContent = --prevAmount;
+
       updateDataHandler({ type: "DECREASE", id: clickedItemID });
+      app.updateTotalHandler();
+      app.updateCartCount();
     }
     if (actionType === "removeItem") {
       let clickedItemID = clickedButton.parentNode.parentNode.parentNode.id;
       app.removeItemHandler(clickedItemID);
-      updateDataHandler({ type: "REMOVE", id: clickedItemID });
-      app.updateTotalHandler();
     }
   },
+
+  emptyCartHandler: () => {
+    let main = document.querySelector(".main");
+    let h1 = document.createElement("h1");
+    h1.textContent = "Your bag";
+    h1.classList.add("title");
+    let p = document.createElement("p");
+    p.textContent = "is currently empty";
+    p.classList.add("emptyCart");
+    main.innerHTML = "";
+    main.append(h1, p);
+  },
+
   removeItemHandler: (id) => {
     document.getElementById(id).remove();
+    updateDataHandler({ type: "REMOVE", id: id });
+    app.updateTotalHandler();
+    app.updateCartCount();
+
+    if (DUMMY_ITEMS.length === 0) {
+      app.emptyCartHandler();
+    }
+  },
+
+  clearCartHandler: () => {
+    updateDataHandler({ type: "CLEAR" });
+    app.displayItemsHandler();
+    app.updateCartCount();
+    app.updateTotalHandler();
+    app.emptyCartHandler();
+  },
+
+  updateCartCount: () => {
+    let cartCount = document.querySelector(".cart-count");
+    let count = DUMMY_ITEMS.reduce((acc, item) => acc + item.amount, 0);
+    cartCount.textContent = count;
   },
 
   updateTotalHandler: () => {
     let totalPriceContainer = document.querySelector(".total-price");
-    let totalPrice = DUMMY_ITEMS.reduce((acc, item) => acc + item.price, 0).toFixed(2);
+    let totalPrice = DUMMY_ITEMS.reduce((acc, item) => acc + item.price * item.amount, 0).toFixed(2);
     totalPriceContainer.textContent = "$" + totalPrice;
   },
 };
